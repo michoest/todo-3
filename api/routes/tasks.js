@@ -2,11 +2,31 @@
 import express from "express";
 import _ from "lodash";
 import { v4 as uuid } from "uuid";
+import dotenv from "dotenv";
+import webpush from "web-push";
 
 import { populate, getDbCollections } from "../db/db.js";
 import { asyncWrapper } from "../utils/utils.js";
 
 const router = express.Router();
+
+dotenv.config();
+
+const vapidPublicKey = process.env.VAPID_PUBLIC_KEY;
+const vapidPrivateKey = process.env.VAPID_PRIVATE_KEY;
+
+if (!vapidPublicKey || !vapidPrivateKey) {
+  console.error(
+    "VAPID keys are not set. Please check your environment variables."
+  );
+  process.exit(1);
+}
+
+webpush.setVapidDetails(
+  "mailto:mail@michoest.com",
+  vapidPublicKey,
+  vapidPrivateKey
+);
 
 router.get("/", (req, res) => {
   const { Tasks } = getDbCollections();
@@ -49,26 +69,33 @@ router.put(
     Tasks.update(task);
 
     // Notify all affected subscriptions (except the current one)
-
-    const notification = {
+    const notification = JSON.stringify({
       title: `Task ${task.title} updated`,
       body: JSON.stringify(req.body),
-      data: task
-    };
+      data: task,
+    });
+
     await Promise.all(
-      _.flatten(
-        Accounts.find({ id: { $in: task.accessAccounts } }).map(
-          (account) => account.subscriptions
-        )
-      ).map(async (subscription) => {
-        if (true) {
-          await webpush.sendNotification(
-            subscription,
-            JSON.stringify(notification)
+      Accounts.find({ id: { $in: task.accessAccounts } }).map(
+        async (account) => {
+          await Promise.all(
+            Object.entries(account.subscriptions).map(
+              async ([endpoint, keys]) => {
+                const subscription = { endpoint, keys };
+                if (true) {
+                  try {
+                    await webpush.sendNotification(subscription, notification);
+                  } catch (err) {
+                    console.log(`Pushing to ${subscription.endpoint} failed!`);
+                    delete account.subscriptions[endpoint];
+                  }
+                }
+              }
+            )
           );
-          console.log('Sending notification...');
+          Accounts.update(account);
         }
-      })
+      )
     );
 
     task = populate(Tasks, task, Accounts, "accessAccounts", "accessAccounts");

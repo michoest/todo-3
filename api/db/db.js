@@ -51,7 +51,7 @@ async function loadInitialData(data) {
     const accountObj = {
       id: uuid(),
       description: account.description,
-      subscriptions: [],
+      subscriptions: {},
     };
     Accounts.insert(accountObj);
     return accountObj.id;
@@ -66,7 +66,7 @@ async function loadInitialData(data) {
         name: user.name,
         passwordHash: await bcrypt.hash(user.password, 10),
         accounts: user.accountIndices.map((index) => accountIds[index]),
-        subscriptions: [],
+        subscriptions: {},
       };
       Users.insert(userObj);
     })

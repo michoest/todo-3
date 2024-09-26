@@ -1,14 +1,14 @@
 export default {
     accounts: [
-        { description: 'Bla Inc.', subscriptions: [] },
-        { description: 'Personal Account', subscriptions: [] },
-        { description: 'Project A', subscriptions: [] },
-        { description: 'Project B', subscriptions: [] }
+        { description: 'Bla Inc.' },
+        { description: 'Personal Account' },
+        { description: 'Project A' },
+        { description: 'Project B' }
     ],
     users: [
-        { email: 'john@example.com', name: { first: 'John', last: 'Doe' }, password: 'john', accountIndices: [0, 1], subscriptions: [] },
-        { email: 'jane@example.com', name: { first: 'Jane', last: 'Smith' }, password: 'jane', accountIndices: [2, 3], subscriptions: [] },
-        { email: 'bob@example.com', name: { first: 'Bob', last: 'Johnson' }, password: 'bob', accountIndices: [1, 2], subscriptions: [] }
+        { email: 'john@example.com', name: { first: 'John', last: 'Doe' }, password: 'john', accountIndices: [0, 1] },
+        { email: 'jane@example.com', name: { first: 'Jane', last: 'Smith' }, password: 'jane', accountIndices: [2, 3] },
+        { email: 'bob@example.com', name: { first: 'Bob', last: 'Johnson' }, password: 'bob', accountIndices: [1, 2] }
     ],
     tasks: [
         {

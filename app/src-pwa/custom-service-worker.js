@@ -6,63 +6,64 @@
  * quasar.config.js > pwa > workboxMode is set to "injectManifest"
  */
 
-import { clientsClaim } from 'workbox-core'
-import { precacheAndRoute, cleanupOutdatedCaches, createHandlerBoundToURL } from 'workbox-precaching'
-import { registerRoute, NavigationRoute } from 'workbox-routing'
+import { clientsClaim } from "workbox-core";
+import {
+  precacheAndRoute,
+  cleanupOutdatedCaches,
+  createHandlerBoundToURL,
+} from "workbox-precaching";
+import { registerRoute, NavigationRoute } from "workbox-routing";
 
-self.skipWaiting()
-clientsClaim()
+self.skipWaiting();
+clientsClaim();
 
 // Use with precache injection
-precacheAndRoute(self.__WB_MANIFEST)
+precacheAndRoute(self.__WB_MANIFEST);
 
-cleanupOutdatedCaches()
+cleanupOutdatedCaches();
 
 // Non-SSR fallback to index.html
 // Production SSR fallback to offline.html (except for dev)
-if (process.env.MODE !== 'ssr' || process.env.PROD) {
+if (process.env.MODE !== "ssr" || process.env.PROD) {
   registerRoute(
     new NavigationRoute(
       createHandlerBoundToURL(process.env.PWA_FALLBACK_HTML),
       { denylist: [/sw\.js$/, /workbox-(.)*\.js$/] }
     )
-  )
+  );
 }
 
-self.addEventListener('push', function(event) {
+self.addEventListener("push", async function (event) {
   const data = event.data.json();
-  const options = {
-    body: data.body,
-    icon: 'icons/icon-128x128.png',
-    badge: 'icons/icon-128x128.png'
-  };
 
   // Send message to main app
-  const allClients = clients.matchAll({
+  const allClients = await clients.matchAll({
     includeUncontrolled: true,
-    type: 'window',
+    type: "window",
   });
 
-  allClients.then(function(clientList) {
-    clientList.forEach(function(client) {
+  if (allClients.length > 0) {
+    // App is open, don't send push notification
+    allClients.forEach((client) => {
       client.postMessage({
-        type: 'PUSH_RECEIVED',
-        payload: data
+        type: "PUSH_RECEIVED",
+        payload: data,
       });
     });
-  });
-
-  event.waitUntil(
-    self.registration.showNotification(data.title, options)
-  );
-
-  console.log(event);
+  } else {
+    // App is not open, send push notification
+    const options = {
+      body: data.body,
+      icon: "icons/icon-128x128.png",
+      badge: "icons/icon-128x128.png",
+    };
+    
+    event.waitUntil(self.registration.showNotification(data.title, options));
+  }
 });
 
-self.addEventListener('notificationclick', function(event) {
+self.addEventListener("notificationclick", function (event) {
+  // TODO: React to specific notification
   event.notification.close();
-  event.waitUntil(
-    clients.openWindow('https://todo-3.app.michoest.com')
-  );
-  console.log(event);
+  event.waitUntil(clients.openWindow("https://todo-3.app.michoest.com"));
 });

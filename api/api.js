@@ -51,16 +51,16 @@ app.get(
   })
 );
 
-app.get(
+app.post(
   "/subscribe",
   asyncWrapper(async (req, res, next) => {
+    const { Users, Accounts } = getDbCollections();
     const subscription = req.body;
 
     // A client can only subscribe if there is a user logged in
     if (req.user) {
       // Insert or update existing subscription
       req.user.subscriptions[subscription.endpoint] = subscription.keys;
-
       Users.update(req.user);
     } else {
       throw new APIError("There must be a user logged in!");
@@ -69,11 +69,20 @@ app.get(
     if (req.account) {
       // Insert or update existing subscription
       req.account.subscriptions[subscription.endpoint] = subscription.keys;
-
       Accounts.update(req.account);
     }
+
+    return res.json();
   })
 );
+
+const vapidPublicKey = process.env.VAPID_PUBLIC_KEY;
+app.get(
+    "/vapid",
+    asyncWrapper(async (req, res, next) => {
+      res.json(vapidPublicKey);
+    })
+  );
 
 // Error handling with APIError
 app.use(function (err, req, res, next) {
