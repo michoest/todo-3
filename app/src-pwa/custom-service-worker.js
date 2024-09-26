@@ -42,6 +42,8 @@ self.addEventListener("push", async function (event) {
     type: "window",
   });
 
+  console.log('allClients: ', allClients);
+
   if (allClients.length > 0) {
     // App is open, don't send push notification
     allClients.forEach((client) => {
@@ -50,14 +52,16 @@ self.addEventListener("push", async function (event) {
         payload: data,
       });
     });
+    console.log(2);
   } else {
+    console.log(3);
     // App is not open, send push notification
     const options = {
       body: data.body,
       icon: "icons/icon-128x128.png",
       badge: "icons/icon-128x128.png",
     };
-    
+
     event.waitUntil(self.registration.showNotification(data.title, options));
   }
 });

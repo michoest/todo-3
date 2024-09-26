@@ -78,11 +78,14 @@ router.put(
     await Promise.all(
       Accounts.find({ id: { $in: task.accessAccounts } }).map(
         async (account) => {
+            // console.log(account.subscriptions);
           await Promise.all(
             Object.entries(account.subscriptions).map(
               async ([endpoint, keys]) => {
                 const subscription = { endpoint, keys };
+                console.log(endpoint, req.pushEndpoint);
                 if (endpoint != req.pushEndpoint) {
+                    console.log(1);
                   try {
                     await webpush.sendNotification(subscription, notification);
                   } catch (err) {
