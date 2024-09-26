@@ -20,6 +20,12 @@ app.use(cors("*"));
 app.use(express.json());
 app.use(morgan("combined"));
 
+app.use((req, res, next) => {
+    req.pushEndpoint = req.headers['Push-Endpoint'];
+
+    next();
+});
+
 // JWT Authentication middleware
 app.use((req, res, next) => {
   const token = req.headers["authorization"]?.split(" ")[1]; // Bearer TOKEN

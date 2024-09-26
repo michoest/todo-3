@@ -8,8 +8,7 @@ export const useStore = defineStore("store", {
   state: () => ({
     global: {
       status: "loading",
-      // sse: null,
-      notificationSubscription: null
+      endpoint: null
     },
     persistent: {
       api: "http://localhost:3004",
@@ -200,7 +199,7 @@ export const useStore = defineStore("store", {
       $api.defaults.baseURL = url;
     },
     async handlePush(payload) {
-      console.log('handlePush', payload);
+      // console.log('handlePush', payload);
     },
     async subscribe() {
       if (!this.global.push) {
@@ -216,6 +215,7 @@ export const useStore = defineStore("store", {
               applicationServerKey: vapidPublicKey
             });
             await $api.post('/subscribe', subscription);
+            $api.defaults.headers.common['Push-Endpoint'] = subscription.endpoint;
             console.log('Push notification subscription successful');
           } catch (error) {
             console.error('Error subscribing to push notifications:', error);

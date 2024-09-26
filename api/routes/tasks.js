@@ -82,7 +82,7 @@ router.put(
             Object.entries(account.subscriptions).map(
               async ([endpoint, keys]) => {
                 const subscription = { endpoint, keys };
-                if (true) {
+                if (endpoint != req.pushEndpoint) {
                   try {
                     await webpush.sendNotification(subscription, notification);
                   } catch (err) {
