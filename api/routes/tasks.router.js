@@ -30,31 +30,48 @@ webpush.setVapidDetails(
 
 router.get("/", (req, res) => {
   const { Tasks } = getDbCollections();
+  const tasks = Tasks.find();
 
-  res.json(Tasks.find());
+  return res.json({ tasks });
 });
 
 router.post("/", (req, res) => {
   const { Accounts, Tasks } = getDbCollections();
 
-  const { title, tags, status, ownerId, dueDate, accessAccounts } = req.body;
+  const {
+    title,
+    tags,
+    status,
+    owner: ownerId,
+    dueDate,
+    accessAccounts,
+  } = req.body.task;
 
   const owner = Accounts.findOne({ id: ownerId });
   if (!owner) {
     return res.status(400).json({ error: "Owner account not found" });
   }
 
-  const newTask = {
+  let newTask = {
     id: uuid(),
     title,
     tags,
     status,
-    ownerId,
+    owner: ownerId,
     dueDate: new Date(dueDate),
     accessAccounts,
   };
 
   Tasks.insert(newTask);
+
+  newTask = populate(
+    Tasks,
+    newTask,
+    Accounts,
+    "accessAccounts",
+    "accessAccounts"
+  );
+  newTask = populate(Tasks, newTask, Accounts, "owner", "owner");
 
   return res.status(201).json(newTask);
 });
@@ -78,18 +95,18 @@ router.put(
     await Promise.all(
       Accounts.find({ id: { $in: task.accessAccounts } }).map(
         async (account) => {
-            // console.log(account.subscriptions);
+          // console.log(account.subscriptions);
           await Promise.all(
             Object.entries(account.subscriptions).map(
               async ([endpoint, keys]) => {
                 const subscription = { endpoint, keys };
-                console.log(endpoint, req.pushEndpoint);
+                // console.log(endpoint, req.pushEndpoint);
                 if (endpoint != req.pushEndpoint) {
-                    console.log(1);
+                  // console.log(1);
                   try {
                     await webpush.sendNotification(subscription, notification);
                   } catch (err) {
-                    console.log(`Pushing to ${subscription.endpoint} failed!`);
+                    // console.log(`Pushing to ${subscription.endpoint} failed!`);
                     delete account.subscriptions[endpoint];
                   }
                 }
@@ -105,6 +122,50 @@ router.put(
     task = populate(Tasks, task, Accounts, "owner", "owner");
 
     return res.json({ task });
+  })
+);
+
+router.delete(
+  "/:id",
+  asyncWrapper(async (req, res, next) => {
+    const { Tasks, Accounts } = getDbCollections();
+
+    let task = Tasks.findOne({ id: req.params.id });
+    Tasks.remove(task);
+
+    // Notify all affected subscriptions (except the current one)
+    const notification = JSON.stringify({
+      title: `Task ${task.title} deleted`,
+      data: task,
+    });
+
+    await Promise.all(
+      Accounts.find({ id: { $in: task.accessAccounts } }).map(
+        async (account) => {
+          // console.log(account.subscriptions);
+          await Promise.all(
+            Object.entries(account.subscriptions).map(
+              async ([endpoint, keys]) => {
+                const subscription = { endpoint, keys };
+                // console.log(endpoint, req.pushEndpoint);
+                if (endpoint != req.pushEndpoint) {
+                  // console.log(1);
+                  try {
+                    await webpush.sendNotification(subscription, notification);
+                  } catch (err) {
+                    // console.log(`Pushing to ${subscription.endpoint} failed!`);
+                    delete account.subscriptions[endpoint];
+                  }
+                }
+              }
+            )
+          );
+          Accounts.update(account);
+        }
+      )
+    );
+
+    return res.json();
   })
 );
 

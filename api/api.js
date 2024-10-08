@@ -7,9 +7,11 @@ import dotenv from "dotenv";
 import { initDatabase, getDbCollections } from "./db/db.js";
 import { verifyToken } from "./utils/jwtUtils.js";
 import { asyncWrapper, APIError } from "./utils/utils.js";
-import authRouter from "./routes/auth.js";
-import usersAccountsRouter from "./routes/usersAccounts.js";
-import tasksRouter from "./routes/tasks.js";
+import authRouter from "./routes/auth.router.js";
+import usersRouter from "./routes/users.router.js";
+import accountsRouter from "./routes/accounts.router.js";
+import tasksRouter from "./routes/tasks.router.js";
+import projectsRouter from "./routes/projects.router.js";
 
 // Setup
 dotenv.config();
@@ -46,8 +48,10 @@ app.use((req, res, next) => {
 
 // Use routers
 app.use("/auth", authRouter);
-app.use("/users", usersAccountsRouter);
+app.use("/users", usersRouter);
+app.use("/accounts", accountsRouter);
 app.use("/tasks", tasksRouter);
+app.use("/projects", projectsRouter);
 
 // Routes
 app.get(

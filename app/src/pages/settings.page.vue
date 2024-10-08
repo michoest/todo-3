@@ -1,5 +1,6 @@
 <template>
   <q-page>
+    <div class="text-h6 q-pa-md text-center">Settings</div>
     <q-list class="q-pa-sm q-pt-md">
       <q-item-label header>User</q-item-label>
       <q-item class="q-pb-lg">

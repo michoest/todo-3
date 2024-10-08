@@ -8,7 +8,7 @@ import { populate, getDbCollections } from "../db/db.js";
 
 const router = express.Router();
 
-router.post("/login", async (req, res) => {
+router.post("/login/user", asyncWrapper(async (req, res) => {
   const { Users, Accounts, Tasks } = getDbCollections();
 
   const { email, password } = req.body;
@@ -23,21 +23,23 @@ router.post("/login", async (req, res) => {
     user = populate(Users, user, Accounts, "accounts", "accounts");
     user = _.pick(user, ["id", "email", "name", "accounts", "defaultAccount"]);
 
+    const accounts = Accounts.find();
+
     if (account) {
       const tasks = Tasks.find({ accessAccounts: { $contains: account.id } });
 
-      return res.json({ user, account, token, tasks });
+      return res.json({ user, account, token, tasks, accounts });
     } else {
-      return res.json({ user, token });
+      return res.json({ user, token, accounts });
     }
   } else {
     return res
       .status(401)
       .json({ notification: { message: "Invalid credentials" } });
   }
-});
+}));
 
-router.post("/login/account", async (req, res) => {
+router.post("/login/account", asyncWrapper(async (req, res) => {
   const { Users, Accounts, Tasks } = getDbCollections();
 
   if (req.user) {
@@ -91,11 +93,11 @@ router.post("/login/account", async (req, res) => {
       .status(401)
       .json({ notification: { message: "Invalid credentials" } });
   }
-});
+}));
 
 router.post("/logout", (req, res) => {
-  // JWT doesn't require server-side logout, but you can implement token invalidation if needed
-  res.send("Logged out successfully");
+  // TODO: Remove subscriptions
+  return res.json();
 });
 
 router.post(
@@ -113,33 +115,5 @@ router.post(
     }
   })
 );
-
-router.get("/data", async (req, res, next) => {
-  const { Users, Accounts, Tasks } = getDbCollections();
-
-  if (req.user && req.account) {
-    let tasks = Tasks.find({ accessAccounts: { $contains: req.account.id } });
-    tasks = populate(
-      Tasks,
-      tasks,
-      Accounts,
-      "accessAccounts",
-      "accessAccounts"
-    );
-    tasks = populate(Tasks, tasks, Accounts, "owner", "owner");
-
-    let user = req.user;
-    user = populate(Users, user, Accounts, "accounts", "accounts");
-    user = _.pick(user, ["id", "email", "name", "accounts", "defaultAccount"]);
-
-    let account = req.account;
-
-    return res.json({ user, account, tasks });
-  } else {
-    return res
-      .status(404)
-      .json({ notification: { message: "Invalid token!" } });
-  }
-});
 
 export default router;

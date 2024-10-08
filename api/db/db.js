@@ -22,21 +22,24 @@ export async function initDatabase() {
 }
 
 async function databaseInitialized() {
-  let { Users, Accounts, Tasks } = getDbCollections();
+  let { Accounts, Users, Tasks, Projects } = getDbCollections();
 
-  if (Users === null) {
-    Users = db.addCollection("users", { indices: ["id", "email"] });
+  if (Tasks === null) {
+    Tasks = db.addCollection("tasks", { indices: ["id"] });
+  }
+  if (Projects === null) {
+    Projects = db.addCollection("projects", { indices: ["id"] });
   }
   if (Accounts === null) {
     Accounts = db.addCollection("accounts", { indices: ["id"] });
   }
-  if (Tasks === null) {
-    Tasks = db.addCollection("tasks", { indices: ["id"] });
+  if (Users === null) {
+    Users = db.addCollection("users", { indices: ["id", "email"] });
   }
 
   // If the collections are empty, load and process initial data
-  if (Users.count() + Accounts.count() + Tasks.count() == 0) {
-    const { default: initialData } = await import("./db.init.js");
+  if (Users.count() + Accounts.count() + Tasks.count() + Projects.count == 0) {
+    const { default: initialData } = await import("./db.init.old.js");
     await loadInitialData(initialData);
   }
 
@@ -44,13 +47,13 @@ async function databaseInitialized() {
 }
 
 async function loadInitialData(data) {
-  const { Users, Accounts, Tasks } = getDbCollections();
+  const { Users, Accounts, Tasks, Projects } = getDbCollections();
 
   // Process and insert accounts first
   const accountIds = data.accounts.map((account) => {
     const accountObj = {
       id: uuid(),
-      description: account.description,
+      name: account.name,
       subscriptions: {},
     };
     Accounts.insert(accountObj);
@@ -65,7 +68,10 @@ async function loadInitialData(data) {
         email: user.email,
         name: user.name,
         passwordHash: await bcrypt.hash(user.password, 10),
-        accounts: user.accountIndices.map((index) => accountIds[index]),
+        accounts: user.accounts.map((account) => ({
+          description: account.description,
+          account: accountIds[account.accountIndex],
+        })),
         subscriptions: {},
       };
       Users.insert(userObj);
@@ -73,20 +79,32 @@ async function loadInitialData(data) {
   );
 
   // Process and insert tasks
-  await Promise.all(
-    data.tasks.map(async (task) => {
-      const taskObj = {
-        id: uuid(),
-        title: task.title,
-        tags: task.tags,
-        status: task.status,
-        owner: accountIds[task.ownerIndex],
-        dueDate: new Date(task.dueDate),
-        accessAccounts: task.accessIndices.map((index) => accountIds[index]),
-      };
-      Tasks.insert(taskObj);
-    })
-  );
+  const taskIds = data.tasks.map((task) => {
+    const taskObj = {
+      id: uuid(),
+      title: task.title,
+      details: task.details,
+      tags: task.tags,
+      links: task.links,
+      owner: accountIds[task.ownerIndex],
+      due: new Date(task.due),
+      status: task.status,
+    };
+    Tasks.insert(taskObj);
+    return taskObj.id;
+  });
+
+  // Process and insert projects
+  data.projects.map(project => {
+    const projectObj = {
+      id: uuid(),
+      name: project.name,
+      details: project.details,
+      tasks: project.taskIndices.map(index => taskIds[index]),
+      members: project.memberIndices.map(index => memberIds[index]),
+    };
+    Projects.insert(projectObj);
+  });
 
   console.log("Initial data loaded.");
 }
@@ -100,6 +118,7 @@ export function getDbCollections() {
     Users: "users",
     Accounts: "accounts",
     Tasks: "tasks",
+    Projects: "projects"
   };
 
   return Object.fromEntries(

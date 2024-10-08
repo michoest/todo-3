@@ -1,71 +1,122 @@
 export default {
-    accounts: [
-        { description: 'Bla Inc.' },
-        { description: 'Personal Account' },
-        { description: 'Project A' },
-        { description: 'Project B' }
-    ],
-    users: [
-        { email: 'john@example.com', name: { first: 'John', last: 'Doe' }, password: 'john', accountIndices: [0, 1] },
-        { email: 'jane@example.com', name: { first: 'Jane', last: 'Smith' }, password: 'jane', accountIndices: [2, 3] },
-        { email: 'bob@example.com', name: { first: 'Bob', last: 'Johnson' }, password: 'bob', accountIndices: [1, 2] }
-    ],
-    tasks: [
+  projects: [
+    {
+      name: "Project Alpha",
+      details: "Backend re-launch",
+      taskIndices: [0, 1],
+      memberIndices: [0, 1, 2],
+    },
+    {
+      name: "Project Beta",
+      details: "Financial restructuring of the company",
+      taskIndices: [2, 3],
+      memberIndices: [1, 3],
+    },
+  ],
+  users: [
+    {
+      email: "john.doe@example.com",
+      name: {
+        first: "John",
+        last: "Doe",
+      },
+      password: "john",
+      accounts: [
         {
-            title: 'Complete Project Proposal',
-            tags: ['work', 'urgent'],
-            status: 'in_progress',
-            ownerIndex: 0, // John's Work Account
-            dueDate: '2024-10-01',
-            accessIndices: [0, 2, 3] // Project A and Project B Accounts
+          description: "Personal",
+          accountIndex: 0,
         },
         {
-            title: 'Plan Team Building Event',
-            tags: ['work', 'social'],
-            status: 'not_started',
-            ownerIndex: 2, // Project A Account
-            dueDate: '2024-11-15',
-            accessIndices: [0, 1, 2, 3] // Work, Personal, and Project B Accounts
+          description: "Work",
+          accountIndex: 1,
         },
+      ],
+    },
+    {
+      email: "jane.smith@example.com",
+      name: {
+        first: "Jane",
+        last: "Smith",
+      },
+      password: "jane",
+      accounts: [
         {
-            title: 'Complete Project Proposal',
-            tags: ['work', 'urgent'],
-            status: 'in_progress',
-            ownerIndex: 0, // John's Work Account
-            dueDate: '2024-10-01',
-            accessIndices: [0, 2, 3] // Project A and Project B Accounts
+          description: "Personal",
+          accountIndex: 2,
         },
+      ],
+    },
+  ],
+  accounts: [
+    {
+      name: "John's Personal Account",
+    },
+    {
+      name: "John's Work Account",
+    },
+    {
+      name: "Jane's Personal Account",
+    },
+    {
+      name: "Team Account",
+    },
+  ],
+  tasks: [
+    {
+      title: "Implement user authentication",
+      details: "Set up JWT-based authentication for the API",
+      tags: ["backend", "security"],
+      links: [
         {
-            title: 'Prepare Quarterly Financial Report',
-            tags: ['finance', 'high-priority'],
-            status: 'not_started',
-            ownerIndex: 1, // Finance Team Account
-            dueDate: '2024-11-15',
-            accessIndices: [1, 3] // Finance Team and Project B Accounts
+          type: "document",
+          content: "https://example.com/docs/auth-spec.pdf",
         },
+      ],
+      owner: "acc-002",
+      due: "2024-10-15T00:00:00Z",
+      status: "In Progress",
+    },
+    {
+      title: "Design landing page",
+      details: "Create a responsive design for the project landing page",
+      tags: ["frontend", "design"],
+      links: [
         {
-            title: 'Conduct User Experience Research',
-            tags: ['design', 'research'],
-            status: 'in_progress',
-            ownerIndex: 2, // UX Team Account
-            dueDate: '2024-10-30',
-            accessIndices: [0, 2] // John's Work Account and Project A Account
+          type: "image",
+          content: "https://example.com/mockups/landing-page.png",
         },
+      ],
+      owner: "acc-003",
+      due: "2024-10-20T00:00:00Z",
+      status: "Not Started",
+    },
+    {
+      title: "Optimize database queries",
+      details: "Improve performance of slow-running queries",
+      tags: ["backend", "database"],
+      links: [
         {
-            title: 'Implement New Security Protocols',
-            tags: ['IT', 'security', 'urgent'],
-            status: 'not_started',
-            ownerIndex: 3, // IT Department Account
-            dueDate: '2024-09-15',
-            accessIndices: [0, 1, 2, 3] // All Accounts
+          type: "issue",
+          content: "https://example.com/issues/PROJ-123",
         },
+      ],
+      owner: "acc-002",
+      due: "2024-10-25T00:00:00Z",
+      status: "In Progress",
+    },
+    {
+      title: "Write user documentation",
+      details: "Create comprehensive user guide for the new features",
+      tags: ["documentation"],
+      links: [
         {
-            title: 'Organize Team Building Event',
-            tags: ['HR', 'team'],
-            status: 'in_progress',
-            ownerIndex: 0, // John's Work Account
-            dueDate: '2024-12-01',
-            accessIndices: [0, 1, 2, 3] // All Accounts
-        }
-    ]
+          type: "document",
+          content: "https://example.com/docs/user-guide-template.docx",
+        },
+      ],
+      owner: "acc-004",
+      due: "2024-11-01T00:00:00Z",
+      status: "Not Started",
+    },
+  ],
 };

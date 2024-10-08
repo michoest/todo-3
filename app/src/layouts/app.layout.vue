@@ -8,8 +8,11 @@
     <q-footer class="bg-grey-2 text-primary">
       <q-separator />
       <q-tabs v-if="$store.user" v-model="tab" align="justify">
-        <q-route-tab name="tasks" icon="checklist" to="/tasks" />
-        <q-route-tab name="settings" to="/settings">
+        <q-route-tab icon="folder_copy" to="/projects" />
+        <q-route-tab icon="checklist" to="/tasks" />
+        <q-route-tab icon="dashboard" to="/view-options" />
+        <q-route-tab icon="email" to="/notifications" alert="negative" disable />
+        <q-route-tab to="/settings">
           <q-avatar class="bg-primary text-white" size="sm">{{ $store.account?.description[0] }}</q-avatar>
         </q-route-tab>
       </q-tabs>
